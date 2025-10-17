@@ -1,0 +1,5 @@
+{
+  "faq_path": "data/faqs.csv",
+  "fund_path": "data/funds.csv",
+  "embeddings_path": "faiss_index.pkl"
+}

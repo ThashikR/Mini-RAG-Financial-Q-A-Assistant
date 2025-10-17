@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mutual Fund AI Assistant</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 2em auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    input[type="text"], button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 1em;
+    }
+    label {
+      margin-right: 10px;
+    }
+    .response {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-left: 4px solid #007bff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mutual Fund AI Assistant</h1>
+  <form id="queryForm">
+    <input type="text" id="query" placeholder="Ask a question like 'What is an index fund?' or 'Best funds by Sharpe ratio'" required />
+    <div>
+      <label><input type="radio" name="mode" value="semantic" checked /> Semantic</label>
+      <label><input type="radio" name="mode" value="lexical" /> Lexical</label>
+    </div>
+    <button type="submit">Ask</button>
+  </form>
+
+  <div id="response" class="response" style="display: none;"></div>
+
+  <script>
+    const form = document.getElementById("queryForm");
+    const responseDiv = document.getElementById("response");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const query = document.getElementById("query").value;
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+
+      responseDiv.style.display = "none";
+      responseDiv.innerHTML = "Loading...";
+
+      try {
+        const res = await fetch("http://localhost:8000/query", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, mode }),
+        });
+
+        const data = await res.json();
+        let html = `<strong>${data.answer}</strong><br><br>`;
+
+        if (data.top_funds) {
+          html += "<ul>";
+          for (let fund of data.top_funds) {
+            html += `<li>${fund}</li>`;
+          }
+          html += "</ul>";
+        } else if (data.sources) {
+          html += "<em>Sources:</em><ul>";
+          for (let src of data.sources) {
+            html += `<li>${src}</li>`;
+          }
+          html += "</ul>";
+        }
+
+        responseDiv.innerHTML = html;
+        responseDiv.style.display = "block";
+
+      } catch (error) {
+        responseDiv.innerHTML = "An error occurred. Please try again.";
+        responseDiv.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>
